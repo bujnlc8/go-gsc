@@ -1,0 +1,4 @@
+mysqlDSN:root:123456@tcp(127.0.0.1:3307)/songci?charset=utf8
+listenAddr:0.0.0.0:8080
+wxAppId:wx3f2ef9f26eebfb65
+wxappSecret:18e085b01f854fa7c391c19422c0a1c6
