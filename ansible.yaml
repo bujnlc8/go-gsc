@@ -1,0 +1,20 @@
+---
+
+- hosts: q_cloud
+  remote_user: root
+  tasks:
+    - name: deploy...
+      docker_container:
+        name: gsc
+        image: "{{image_tag}}"
+        state: started
+        pull: true
+        restart: true
+        restart_policy: always
+        env:
+          wxAppId: "{{wxAppId}}"
+          wxappSecret: "{{wxappSecret}}"
+          listenAddr: "{{listenAddr}}"
+          mysqlDSN: "{{mysqlDSN}}"
+        published_ports:
+          - "8081:8080"

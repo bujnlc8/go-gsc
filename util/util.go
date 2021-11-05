@@ -18,7 +18,7 @@ func GetPrevDir(path string) string {
 
 // InitConf ...
 func InitConf() {
-	if len(Confs) !=0{
+	if len(Confs) != 0 {
 		fmt.Println(Confs)
 		return
 	}
@@ -42,6 +42,9 @@ func InitConf() {
 	for _, v := range strings.Split(string(buf), "\n") {
 		v = strings.Replace(v, " ", "", -1)
 		index := strings.Index(v, ":")
+		if index == -1 {
+			continue
+		}
 		k := strings.Replace(v[:index], " ", "", -1)
 		v := strings.Replace(v[index+1:], " ", "", -1)
 		Confs[k] = v
@@ -53,7 +56,6 @@ func GetConf(name string) interface{} {
 	return Confs[name]
 }
 
-func GetConfStr(name string) string  {
-	return fmt.Sprintf("%v", GetConf(name))
+func GetConfStr(name string) string {
+	return os.Getenv(name)
 }
-

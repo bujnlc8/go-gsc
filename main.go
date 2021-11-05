@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"gogsc/util"
 	"fmt"
-	"gogsc/controller"
+
+	"github.com/bujnlc8/go-gsc/controller"
+	"github.com/bujnlc8/go-gsc/util"
+	"github.com/gin-gonic/gin"
 )
 
-func setRoute(r *gin.Engine){
+func setRoute(r *gin.Engine) {
 	r.GET("/songci/index/:id/:open_id", controller.HandleIndex)
 	r.GET("/songci/query/:q/:page/:open_id", controller.HandleQuery)
 	r.GET("/user/auth/:code", controller.Code2Session)
@@ -16,10 +17,10 @@ func setRoute(r *gin.Engine){
 	r.GET("/songci/mylike/:open_id", controller.QueryMyLike)
 
 }
-func main()  {
+func main() {
 	r := gin.Default()
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(gin.ReleaseMode)
 	setRoute(r)
-	listenAddr := fmt.Sprintf("%v", util.GetConf("listenAddr"))
+	listenAddr := fmt.Sprintf("%v", util.GetConfStr("listenAddr"))
 	r.Run(listenAddr)
 }

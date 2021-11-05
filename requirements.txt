@@ -1,0 +1,2 @@
+ansible==4.8.0
+docker==4.4.4
