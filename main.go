@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/bujnlc8/go-gsc/controller"
 	"github.com/bujnlc8/go-gsc/util"
@@ -18,8 +19,12 @@ func setRoute(r *gin.Engine) {
 
 }
 func main() {
+	if os.Getenv("GSC_DEBUG") == "true" {
+		gin.SetMode(gin.DebugMode)
+	} else {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.Default()
-	gin.SetMode(gin.ReleaseMode)
 	setRoute(r)
 	listenAddr := fmt.Sprintf("%v", util.GetConfStr("listenAddr"))
 	r.Run(listenAddr)

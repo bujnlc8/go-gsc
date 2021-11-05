@@ -57,5 +57,14 @@ func GetConf(name string) interface{} {
 }
 
 func GetConfStr(name string) string {
+	if os.Getenv("GSC_DEBUG") == "true" {
+		return fmt.Sprintf("%v", Confs[name])
+	}
 	return os.Getenv(name)
+}
+
+func init() {
+	if os.Getenv("GSC_DEBUG") == "true" {
+		InitConf()
+	}
 }
