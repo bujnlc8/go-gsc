@@ -6,7 +6,7 @@
     - name: deploy...
       docker_container:
         name: gsc
-        image: "{{image_tag}}"
+        image: yy194131/gogsc:{{image_tag}}
         state: started
         pull: true
         restart: true
