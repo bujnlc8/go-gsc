@@ -3,9 +3,9 @@
 - hosts: q_cloud
   remote_user: root
   tasks:
-    - name: deploy...
+    - name: deploy gsc1...
       docker_container:
-        name: gsc
+        name: gsc1
         image: yy194131/gogsc:{{image_tag}}
         state: started
         pull: true
@@ -18,3 +18,19 @@
           mysqlDSN: "{{mysqlDSN}}"
         published_ports:
           - "8081:8080"
+    
+    - name: deploy gsc2...
+      docker_container:
+        name: gsc2
+        image: yy194131/gogsc:{{image_tag}}
+        state: started
+        pull: true
+        restart: true
+        restart_policy: always
+        env:
+          wxAppId: "{{wxAppId}}"
+          wxappSecret: "{{wxappSecret}}"
+          listenAddr: "{{listenAddr}}"
+          mysqlDSN: "{{mysqlDSN}}"
+        published_ports:
+          - "8082:8080"
