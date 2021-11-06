@@ -8,4 +8,6 @@
 
 前端项目: <https://github.com/bujnlc8/igsc-wx>
 
+后台项目: <https://github.com/bujnlc8/gsc-admin>
+
 <img alt="i古诗词小程序码" src="./barcode.jpg" width="180">
