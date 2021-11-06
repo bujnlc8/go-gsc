@@ -2,11 +2,35 @@ package models
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/bujnlc8/go-gsc/util"
 )
+
+type MayNullStr sql.NullString
+
+func (s *MayNullStr) Scan(value interface{}) error {
+	var i sql.NullString
+	if err := i.Scan(value); err != nil {
+		return err
+	}
+	if reflect.TypeOf(value) == nil {
+		*s = MayNullStr{i.String, false}
+	} else {
+		*s = MayNullStr{i.String, true}
+	}
+	return nil
+}
+
+func (s MayNullStr) MarshalJSON() ([]byte, error) {
+	if s.Valid {
+		return json.Marshal(s.String)
+	}
+	return []byte(""), nil
+}
 
 type ReturnDataList struct {
 	Code int8           `json:"code"`
@@ -29,20 +53,20 @@ type ReturnDataInerSingle struct {
 }
 
 type GSC struct {
-	Id             int64  `json:"id"`
-	Work_title     string `json:"work_title"`
-	Work_author    string `json:"work_author"`
-	Work_dynasty   string `json:"work_dynasty"`
-	Content        string `json:"content"`
-	Translation    string `json:"translation"`
-	Intro          string `json:"intro"`
-	Annotation_    string `json:"annotation"`
-	Foreword       string `json:"foreword"`
-	Appreciation   string `json:"appreciation"`
-	Master_comment string `json:"master_comment"`
-	Layout         string `json:"layout"`
-	Audio_id       int64  `json:"audio_id"`
-	Like           int8   `json:"like"`
+	Id             int64      `json:"id"`
+	Work_title     string     `json:"work_title"`
+	Work_author    string     `json:"work_author"`
+	Work_dynasty   string     `json:"work_dynasty"`
+	Content        MayNullStr `json:"content"`
+	Translation    MayNullStr `json:"translation"`
+	Intro          MayNullStr `json:"intro"`
+	Annotation_    MayNullStr `json:"annotation"`
+	Foreword       MayNullStr `json:"foreword"`
+	Appreciation   MayNullStr `json:"appreciation"`
+	Master_comment MayNullStr `json:"master_comment"`
+	Layout         MayNullStr `json:"layout"`
+	Audio_id       int64      `json:"audio_id"`
+	Like           int8       `json:"like"`
 }
 
 type ReturnOpenId struct {
