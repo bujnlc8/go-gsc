@@ -1,9 +1,9 @@
-FROM golang:alpine
-WORKDIR /go/src/github.com/bujnlc8/go-gsc
+FROM golang:1.17.3-buster
+WORKDIR gogsc
 COPY ./ .
 RUN CGO_ENABLED=0 go build -o gsc .
 
 FROM scratch
-WORKDIR /go/src/github.com/bujnlc8/go-gsc
-COPY --from=0 /go/src/github.com/bujnlc8/go-gsc/gsc .
+WORKDIR gogsc
+COPY --from=0 gogsc/gsc .
 CMD ["./gsc"]
