@@ -15,5 +15,8 @@ func Test_SplitString(t *testing.T) {
 	if len(res) != 3 {
 		t.Error(" SplitString error, expect length is 3, but get ", len(res), res)
 	}
-
+	res = SplitString("纳兰性德")
+	t.Log(res)
+	res = SplitString("长江大桥")
+	t.Log(res)
 }

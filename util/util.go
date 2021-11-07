@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/yanyiwu/gojieba"
 )
@@ -67,19 +68,16 @@ func GetConfStr(name string) string {
 	return os.Getenv(name)
 }
 
-// SplitString 按空格分割字符串
 func SplitString(s string) []string {
-	res := strings.Split(strings.TrimSpace(s), " ")
+	res := JieBa.CutForSearch(strings.TrimSpace(s), true)
 	newRes := make([]string, 0)
 	for _, ss := range res {
-		if len(ss) == 0 {
+		ss = strings.TrimSpace(ss)
+		// mysql 最少匹配2个字
+		if utf8.RuneCountInString(ss) <= 1 {
 			continue
 		}
 		newRes = append(newRes, ss)
-	}
-	// 如果只有一个词语，采用jieba分词
-	if len(newRes) == 1 {
-		newRes = JieBa.Cut(newRes[0], true)
 	}
 	return newRes
 }
