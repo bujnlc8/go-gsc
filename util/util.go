@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/yanyiwu/gojieba"
 )
 
 type CONF map[string]interface{}
 
 var Confs = make(CONF)
+
+var JieBa = gojieba.NewJieba()
 
 // GetPrevDir ...
 func GetPrevDir(path string) string {
@@ -61,6 +65,23 @@ func GetConfStr(name string) string {
 		return fmt.Sprintf("%v", Confs[name])
 	}
 	return os.Getenv(name)
+}
+
+// SplitString 按空格分割字符串
+func SplitString(s string) []string {
+	res := strings.Split(strings.TrimSpace(s), " ")
+	newRes := make([]string, 0)
+	for _, ss := range res {
+		if len(ss) == 0 {
+			continue
+		}
+		newRes = append(newRes, ss)
+	}
+	// 如果只有一个词语，采用jieba分词
+	if len(newRes) == 1 {
+		newRes = JieBa.Cut(newRes[0], true)
+	}
+	return newRes
 }
 
 func init() {

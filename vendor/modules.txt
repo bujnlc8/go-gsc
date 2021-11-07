@@ -44,6 +44,12 @@ github.com/modern-go/reflect2
 # github.com/ugorji/go/codec v1.2.6
 ## explicit; go 1.11
 github.com/ugorji/go/codec
+# github.com/yanyiwu/gojieba v1.1.2
+## explicit; go 1.13
+github.com/yanyiwu/gojieba
+github.com/yanyiwu/gojieba/deps/cppjieba
+github.com/yanyiwu/gojieba/deps/limonp
+github.com/yanyiwu/gojieba/dict
 # golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 ## explicit; go 1.11
 golang.org/x/crypto/sha3

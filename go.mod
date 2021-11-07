@@ -5,6 +5,7 @@ go 1.17
 require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-sql-driver/mysql v1.4.0
+	github.com/yanyiwu/gojieba v1.1.2
 )
 
 require (

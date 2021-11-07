@@ -67,6 +67,7 @@ type GSC struct {
 	Layout         MayNullStr `json:"layout"`
 	Audio_id       int64      `json:"audio_id"`
 	Like           int8       `json:"like"`
+	Score          float64    `json:"score"`
 }
 
 type ReturnOpenId struct {
@@ -102,7 +103,7 @@ func processRows(rows *sql.Rows) []GSC {
 			&gsc.Work_dynasty, &gsc.Content, &gsc.Translation,
 			&gsc.Intro, &gsc.Annotation_, &gsc.Foreword,
 			&gsc.Appreciation, &gsc.Master_comment, &gsc.Layout,
-			&gsc.Audio_id)
+			&gsc.Audio_id, &gsc.Score)
 		GSCS = append(GSCS, *gsc)
 	}
 	return GSCS
@@ -110,9 +111,9 @@ func processRows(rows *sql.Rows) []GSC {
 
 func GetGSCById(id int64, open_id string) GSC {
 	rows, err := util.DB.Query(
-		"select id, work_title, work_author, work_dynasty, content, "+
+		"SELECT `id`, work_title, work_author, work_dynasty, content, "+
 			"translation, intro, annotation_, foreword, appreciation, "+
-			"master_comment, layout, audio_id from gsc  where id = ? ", id)
+			"master_comment, layout, audio_id, 0 FROM gsc  WHERE `id` = ? ", id)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -121,12 +122,12 @@ func GetGSCById(id int64, open_id string) GSC {
 		rows.Scan(&gsc.Id, &gsc.Work_title, &gsc.Work_author,
 			&gsc.Work_dynasty, &gsc.Content, &gsc.Translation,
 			&gsc.Intro, &gsc.Annotation_, &gsc.Foreword,
-			&gsc.Appreciation, &gsc.Master_comment, &gsc.Layout, &gsc.Audio_id)
+			&gsc.Appreciation, &gsc.Master_comment, &gsc.Layout, &gsc.Audio_id, &gsc.Score)
 	}
 	//查询是否喜欢
 	if gsc.Id != 0 {
 		rows, err := util.DB.Query(
-			"select id from user_like_gsc where open_id=? and gsc_id=? ", open_id, id)
+			"SELECT `id` FROM user_like_gsc WHERE open_id=? AND  gsc_id=? ", open_id, id)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -140,9 +141,9 @@ func GetGSCById(id int64, open_id string) GSC {
 // GetGSC30 获取随机30条数据
 func GetGSC30() []GSC {
 	rows, err := util.DB.Query(
-		"select id, work_title, work_author, work_dynasty, content, " +
+		"SELECT `id`, work_title, work_author, work_dynasty, content, " +
 			"translation, intro, annotation_, foreword, appreciation, " +
-			"master_comment, layout, audio_id from gsc where audio_id > 0 order by rand() limit 30")
+			"master_comment, layout, audio_id, 0 FROM gsc WHERE audio_id > 0 ORDER BY RAND() LIMIT 30")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -153,18 +154,26 @@ func GSCQuery(q string) []GSC {
 	var rows *sql.Rows
 	var err error
 	if q != "音频" {
-		rows, err = util.DB.Query("select id, work_title, work_author, work_dynasty, " +
-			"content, `translation`, intro, annotation_, foreword, appreciation, " +
-			"master_comment, layout, audio_id from gsc " +
-			" where match(work_author, work_title, work_dynasty, content) against ('+" + q + "' in  boolean mode) order by audio_id desc")
+		splitQ := util.SplitString(q)
+		againstS := ""
+		for _, qq := range splitQ {
+			againstS += " +" + qq
+		}
+		rows, err = util.DB.Query(
+			"SELECT `id`, work_title, work_author, work_dynasty, " +
+				"content, translation, intro, annotation_, foreword, appreciation, " +
+				"master_comment, layout, audio_id , MATCH(work_author, work_title, work_dynasty, content)" +
+				" AGAINST ('" + againstS + "' IN BOOLEAN MODE) AS score FROM gsc " +
+				" WHERE MATCH(work_author, work_title, work_dynasty, content) " +
+				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE) ORDER BY audio_id DESC, score DESC LIMIT 500")
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else {
-		rows, err = util.DB.Query("select id, work_title, work_author, work_dynasty, " +
+		rows, err = util.DB.Query("SELECT `id`, work_title, work_author, work_dynasty, " +
 			"content, `translation`, intro, annotation_, foreword, appreciation, " +
-			"master_comment, layout, audio_id from gsc " +
-			"where audio_id > 0 order by rand() limit 100")
+			"master_comment, layout, audio_id, 0 FROM gsc " +
+			"WHERE audio_id > 0 ORDER BY RAND() LIMIT 100")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -174,7 +183,7 @@ func GSCQuery(q string) []GSC {
 
 func GSCQueryLike(q string, open_id string) []GSC {
 	rows, err := util.DB.Query(
-		"select gsc_id from user_like_gsc where open_id=? ", open_id)
+		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ", open_id)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -189,18 +198,25 @@ func GSCQueryLike(q string, open_id string) []GSC {
 	}
 	gscids_str := strings.Join(gscids, ",")
 	if q != "" {
+		splitQ := util.SplitString(q)
+		againstS := ""
+		for _, qq := range splitQ {
+			againstS += " +" + qq
+		}
 		rows, err = util.DB.Query(
-			"select id, work_title, work_author, work_dynasty, content, " +
+			"SELECT `id`, work_title, work_author, work_dynasty, content, " +
 				"translation, intro, annotation_, foreword, appreciation, master_comment, layout," +
-				"audio_id from gsc where match(work_author, work_title, work_dynasty, content) against ('+" + q + "' in boolean mode) and id in (" + gscids_str + ") order by audio_id desc ")
+				"audio_id,  MATCH(work_author, work_title, work_dynasty, content) AGAINST ('" + againstS + "' IN BOOLEAN MODE) AS score " +
+				"FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
+				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ") ORDER BY audio_id DESC, score DESC ")
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else {
 		rows, err = util.DB.Query(
-			"select id, work_title, work_author, work_dynasty, content, " +
+			"SELECT `id`, work_title, work_author, work_dynasty, content, " +
 				"translation, intro, annotation_, foreword, appreciation, master_comment, layout," +
-				"audio_id from gsc where id in (" + gscids_str + ") order by audio_id desc")
+				"audio_id, 0 FROM gsc WHERE `id` IN (" + gscids_str + ") ORDER BY audio_id DESC")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -210,7 +226,7 @@ func GSCQueryLike(q string, open_id string) []GSC {
 
 func SetLike(open_id string, gsc_id string, operate int8) bool {
 	if operate == 1 {
-		result, err := util.DB.Exec("insert into user_like_gsc(open_id, gsc_id)values(?, ?)", open_id, gsc_id)
+		result, err := util.DB.Exec("INSERT  INTO  user_like_gsc(open_id, gsc_id) VALUES (?, ?)", open_id, gsc_id)
 		if err != nil {
 			fmt.Println(err)
 			return false
@@ -220,7 +236,7 @@ func SetLike(open_id string, gsc_id string, operate int8) bool {
 			return true
 		}
 	} else {
-		result, err := util.DB.Exec("delete from user_like_gsc where open_id=? and gsc_id=?", open_id, gsc_id)
+		result, err := util.DB.Exec("DELETE FROM user_like_gsc WHERE open_id=? AND gsc_id=?", open_id, gsc_id)
 		if err != nil {
 			fmt.Println(err)
 			return false
