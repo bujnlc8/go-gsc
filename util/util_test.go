@@ -17,6 +17,10 @@ func Test_SplitString(t *testing.T) {
 	}
 	res = SplitString("纳兰性德")
 	t.Log(res)
-	res = SplitString("长江大桥")
+	res = SplitString("谏逐客书")
+	t.Log(res)
+	res = SplitString("张抡")
+	t.Log(res)
+	res = SplitString("不负如来不负卿")
 	t.Log(res)
 }

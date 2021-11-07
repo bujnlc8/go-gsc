@@ -69,12 +69,15 @@ func GetConfStr(name string) string {
 }
 
 func SplitString(s string) []string {
-	res := JieBa.CutForSearch(strings.TrimSpace(s), true)
+	s = strings.TrimSpace(s)
+	if utf8.RuneCountInString(s) <= 4 {
+		return []string{s}
+	}
+	res := JieBa.Cut(s, true)
 	newRes := make([]string, 0)
 	for _, ss := range res {
 		ss = strings.TrimSpace(ss)
-		// mysql 最少匹配2个字
-		if utf8.RuneCountInString(ss) <= 1 {
+		if utf8.RuneCountInString(ss) <= 0 {
 			continue
 		}
 		newRes = append(newRes, ss)
