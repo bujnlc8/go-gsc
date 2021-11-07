@@ -1,9 +1,6 @@
-FROM golang:1.17.3-buster
+FROM ubuntu:18.04
 WORKDIR gogsc
-COPY ./ .
-RUN GOOS=linux CGO_ENABLED=0 go build -o gsc .
-
-FROM scratch
-WORKDIR gogsc
-COPY --from=0 gogsc/gsc .
+COPY gsc .
+RUN mkdir -p /home/runner/work/go-gsc/go-gsc/vendor/github.com/yanyiwu
+COPY vendor/github.com/yanyiwu/ /home/runner/work/go-gsc/go-gsc/vendor/github.com/yanyiwu/
 CMD ["./gsc"]
