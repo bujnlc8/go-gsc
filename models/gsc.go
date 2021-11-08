@@ -154,15 +154,7 @@ func GSCQuery(q string) []GSC {
 	var rows *sql.Rows
 	var err error
 	if q != "音频" {
-		splitQ := util.SplitString(q)
-		againstS := ""
-		for i, qq := range splitQ {
-			if i <= len(splitQ)-2 {
-				againstS += " +" + qq
-			} else {
-				againstS += " " + qq
-			}
-		}
+		againstS := util.AgainstSting(q)
 		rows, err = util.DB.Query(
 			"SELECT `id`, work_title, work_author, work_dynasty, " +
 				"content, translation, intro, annotation_, foreword, appreciation, " +
@@ -202,15 +194,7 @@ func GSCQueryLike(q string, open_id string) []GSC {
 	}
 	gscids_str := strings.Join(gscids, ",")
 	if q != "" {
-		splitQ := util.SplitString(q)
-		againstS := ""
-		for i, qq := range splitQ {
-			if i <= len(splitQ)-2 {
-				againstS += " +" + qq
-			} else {
-				againstS += " " + qq
-			}
-		}
+		againstS := util.AgainstSting(q)
 		rows, err = util.DB.Query(
 			"SELECT `id`, work_title, work_author, work_dynasty, content, " +
 				"translation, intro, annotation_, foreword, appreciation, master_comment, layout," +

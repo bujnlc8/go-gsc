@@ -3,6 +3,7 @@ package util
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 
@@ -68,21 +69,42 @@ func GetConfStr(name string) string {
 	return os.Getenv(name)
 }
 
+var RE = regexp.MustCompile("[。？！，；, ? . ! ; \\s]")
+
 func SplitString(s string) []string {
-	s = strings.TrimSpace(s)
-	if utf8.RuneCountInString(s) <= 4 {
+	s = RE.ReplaceAllString(s, "")
+	if utf8.RuneCountInString(s) <= 2 {
 		return []string{s}
 	}
 	res := JieBa.Cut(s, true)
 	newRes := make([]string, 0)
 	for _, ss := range res {
-		ss = strings.TrimSpace(ss)
+		ss = strings.ReplaceAll(ss, " ", "")
 		if utf8.RuneCountInString(ss) <= 0 {
 			continue
 		}
 		newRes = append(newRes, ss)
 	}
 	return newRes
+}
+
+func AgainstSting(s string) string {
+	splitRes := SplitString(s)
+	// 如果分词数量小于3，全部匹配
+	splitLen := len(splitRes)
+	if splitLen <= 2 {
+		return "+" + strings.Join(splitRes, " +")
+	}
+	res := ""
+	l := int(float64(splitLen) * 0.8)
+	for i, qq := range splitRes {
+		if i < l {
+			res += " +" + qq
+		} else {
+			res += " " + qq
+		}
+	}
+	return res
 }
 
 func init() {
