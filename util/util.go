@@ -96,7 +96,7 @@ func AgainstSting(s string) string {
 		return "+" + strings.Join(splitRes, " +")
 	}
 	res := ""
-	l := int(float64(splitLen) * 0.75)
+	l := int(float64(splitLen) * 0.7)
 	for i, qq := range splitRes {
 		if i < l {
 			res += " +" + qq

@@ -20,6 +20,7 @@ func setRoute(r *gin.Engine) {
 	r.GET("/user/dislike/:open_id/:gsc_id", controller.SetUserDisLike)
 	r.GET("/songci/mylike/:open_id", controller.QueryMyLike)
 	r.GET("/gsc/mylike/:open_id", controller.QueryMyLike)
+	r.GET("/gsc/short_index", controller.HandleShortIndex)
 
 }
 func main() {
