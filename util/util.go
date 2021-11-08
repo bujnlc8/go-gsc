@@ -69,7 +69,7 @@ func GetConfStr(name string) string {
 	return os.Getenv(name)
 }
 
-var RE = regexp.MustCompile("[。？！，；, ? . ! ; \\s]")
+var RE = regexp.MustCompile("[。？！，；、, ? . ! ; \\s]")
 
 func SplitString(s string) []string {
 	s = RE.ReplaceAllString(s, "")
@@ -96,7 +96,7 @@ func AgainstSting(s string) string {
 		return "+" + strings.Join(splitRes, " +")
 	}
 	res := ""
-	l := int(float64(splitLen) * 0.8)
+	l := int(float64(splitLen) * 0.75)
 	for i, qq := range splitRes {
 		if i < l {
 			res += " +" + qq
