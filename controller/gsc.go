@@ -109,6 +109,38 @@ func QueryMyLike(ctx *gin.Context) {
 	ctx.JSON(200, ReturnData)
 }
 
+func QueryMyLikeByPage(ctx *gin.Context) {
+	open_id := ctx.Param("open_id")
+	page_size := ctx.DefaultQuery("page_size", "50")
+	page_size_int, err := strconv.ParseInt(page_size, 10, 0)
+	if err != nil {
+		ctx.JSON(400, models.ErrorResp{Code: 400, Msg: "参数错误"})
+		return
+	}
+	if page_size_int <= 0 {
+		page_size_int = 50
+	}
+	// 页码
+	page_num := ctx.DefaultQuery("page_num", "1")
+	page_num_int, err := strconv.ParseInt(page_num, 10, 0)
+	if err != nil {
+		ctx.JSON(400, models.ErrorResp{Code: 400, Msg: "参数错误"})
+		return
+	}
+	if page_num_int <= 0 {
+		page_num_int = 1
+	}
+	var gscs []models.GSCSimple
+	var total int64
+	gscs, total, err = models.GSCQueryLikeByPage("", open_id, page_size_int, page_num_int)
+	if err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
+		return
+	}
+	ReturnData := models.ReturnSimpleDataList{Code: 0, Data: models.ReturnSimpleDataIner{Msg: "success", Data: gscs, Total: total}}
+	ctx.JSON(200, ReturnData)
+}
+
 func SetUserLike(ctx *gin.Context) {
 	open_id := ctx.Param("open_id")
 	gsc_id := ctx.Param("gsc_id")
