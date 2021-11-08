@@ -10,6 +10,11 @@ import (
 	"github.com/bujnlc8/go-gsc/util"
 )
 
+type ErrorResp struct {
+	Code int64  `json:"code"`
+	Msg  string `json:"msg"`
+}
+
 type MayNullStr sql.NullString
 
 func (s *MayNullStr) Scan(value interface{}) error {
@@ -37,9 +42,20 @@ type ReturnDataList struct {
 	Data ReturnDataIner `json:"data"`
 }
 
+type ReturnSimpleDataList struct {
+	Code int8                 `json:"code"`
+	Data ReturnSimpleDataIner `json:"data"`
+}
+
 type ReturnDataIner struct {
 	Msg  string `json:"msg"`
 	Data []GSC  `json:"data"`
+}
+
+type ReturnSimpleDataIner struct {
+	Msg   string      `json:"msg"`
+	Data  []GSCSimple `json:"data"`
+	Total int64       `json:"total"`
 }
 
 type ReturnDataSingle struct {
@@ -68,6 +84,16 @@ type GSC struct {
 	Audio_id       int64      `json:"audio_id"`
 	Like           int8       `json:"like"`
 	Score          float64    `json:"score"`
+}
+
+type GSCSimple struct {
+	Id           int64      `json:"id"`
+	Work_title   string     `json:"work_title"`
+	Work_author  string     `json:"work_author"`
+	Work_dynasty string     `json:"work_dynasty"`
+	Content      MayNullStr `json:"content"`
+	Audio_id     int64      `json:"audio_id"`
+	Score        float64    `json:"score"`
 }
 
 type ReturnOpenId struct {
@@ -103,6 +129,18 @@ func processRows(rows *sql.Rows) []GSC {
 			&gsc.Work_dynasty, &gsc.Content, &gsc.Translation,
 			&gsc.Intro, &gsc.Annotation_, &gsc.Foreword,
 			&gsc.Appreciation, &gsc.Master_comment, &gsc.Layout,
+			&gsc.Audio_id, &gsc.Score)
+		GSCS = append(GSCS, *gsc)
+	}
+	return GSCS
+}
+
+func processSimpleRows(rows *sql.Rows) []GSCSimple {
+	var GSCS []GSCSimple
+	for rows.Next() {
+		var gsc = new(GSCSimple)
+		rows.Scan(&gsc.Id, &gsc.Work_title, &gsc.Work_author,
+			&gsc.Work_dynasty, &gsc.Content,
 			&gsc.Audio_id, &gsc.Score)
 		GSCS = append(GSCS, *gsc)
 	}
@@ -177,6 +215,44 @@ func GSCQuery(q string) []GSC {
 	return processRows(rows)
 }
 
+func GSCQueryByPage(q string, page_size int64, page_num int64) ([]GSCSimple, int64, error) {
+	var rows *sql.Rows
+	var err error
+	offset := (page_num - 1) * page_size
+	fmt.Println(offset)
+	var total int64
+	if q != "音频" {
+		againstS := util.AgainstSting(q)
+		rows, err = util.DB.Query(
+			"SELECT `id`, work_title, work_author, work_dynasty, "+
+				"SUBSTRING(content, 1, 60) AS c, audio_id , MATCH(work_author, work_title, work_dynasty, content)"+
+				" AGAINST ('"+againstS+"' IN BOOLEAN MODE) AS score FROM gsc "+
+				" WHERE MATCH(work_author, work_title, work_dynasty, content) "+
+				"AGAINST ('"+againstS+"' IN  BOOLEAN MODE) ORDER BY score DESC,audio_id DESC LIMIT ? OFFSET ?", page_size, offset)
+		if err != nil {
+			return nil, 0, err
+		}
+		total_rows, err := util.DB.Query(
+			"SELECT count(1) AS c FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
+				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE)")
+		if err != nil {
+			return nil, 0, err
+		}
+		for total_rows.Next() {
+			total_rows.Scan(&total)
+		}
+	} else {
+		rows, err = util.DB.Query("SELECT `id`, work_title, work_author, work_dynasty, " +
+			"SUBSTRING(content, 1, 60) AS c, audio_id, 0 FROM gsc " +
+			"WHERE audio_id > 0 ORDER BY RAND() LIMIT 100")
+		if err != nil {
+			return nil, 0, err
+		}
+		total = int64(100)
+	}
+	return processSimpleRows(rows), total, nil
+}
+
 func GSCQueryLike(q string, open_id string) []GSC {
 	rows, err := util.DB.Query(
 		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ", open_id)
@@ -214,6 +290,54 @@ func GSCQueryLike(q string, open_id string) []GSC {
 		}
 	}
 	return processRows(rows)
+}
+
+func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int64) ([]GSCSimple, int64, error) {
+	rows, err := util.DB.Query(
+		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ", open_id)
+	if err != nil {
+		return nil, 0, err
+	}
+	var gscids []string
+	for rows.Next() {
+		var gsc_id string
+		rows.Scan(&gsc_id)
+		gscids = append(gscids, gsc_id)
+	}
+	total := int64(len(gscids))
+	if len(gscids) == 0 {
+		gscids = append(gscids, "-1")
+	}
+	offset := (page_num - 1) * page_size
+	gscids_str := strings.Join(gscids, ",")
+	if q != "" {
+		againstS := util.AgainstSting(q)
+		rows, err = util.DB.Query(
+			"SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 60) AS c, "+
+				"audio_id,  MATCH(work_author, work_title, work_dynasty, content) AGAINST ('"+againstS+"' IN BOOLEAN MODE) AS score "+
+				"FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) "+
+				"AGAINST ('"+againstS+"' IN BOOLEAN MODE) AND  `id` IN ("+gscids_str+") ORDER BY score DESC, audio_id DESC LIMIT ? OFFSET ?", page_size, offset)
+		if err != nil {
+			return nil, 0, err
+		}
+		total_rows, err := util.DB.Query(
+			"SELECT count(1) as c FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
+				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ")")
+		if err != nil {
+			return nil, 0, err
+		}
+		for total_rows.Next() {
+			total_rows.Scan(&total)
+		}
+	} else {
+		rows, err = util.DB.Query(
+			"SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 60) AS c, "+
+				"audio_id, 0 FROM gsc WHERE `id` IN ("+gscids_str+") ORDER BY audio_id DESC LIMIT ? OFFSET ?", page_size, offset)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+	return processSimpleRows(rows), total, nil
 }
 
 func SetLike(open_id string, gsc_id string, operate int8) bool {
