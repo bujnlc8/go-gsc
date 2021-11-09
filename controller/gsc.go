@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/bujnlc8/go-gsc/models"
@@ -83,14 +84,16 @@ func HandleQueryByPage(ctx *gin.Context) {
 	if page_num_int <= 0 {
 		page_num_int = 1
 	}
+	search_pattern := ctx.DefaultQuery("search_pattern", "all")
 	gscs := make([]models.GSCSimple, 0)
 	var total int64
 	if page == "main" {
-		gscs, total, err = models.GSCQueryByPage(q, page_size_int, page_num_int)
+		gscs, total, err = models.GSCQueryByPage(q, page_size_int, page_num_int, search_pattern)
 	} else {
-		gscs, total, err = models.GSCQueryLikeByPage(q, open_id, page_size_int, page_num_int)
+		gscs, total, err = models.GSCQueryLikeByPage(q, open_id, page_size_int, page_num_int, search_pattern)
 	}
 	if err != nil {
+		fmt.Println(err)
 		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
 		return
 	}
@@ -130,9 +133,10 @@ func QueryMyLikeByPage(ctx *gin.Context) {
 	if page_num_int <= 0 {
 		page_num_int = 1
 	}
+	search_pattern := ctx.DefaultQuery("search_pattern", "all")
 	var gscs []models.GSCSimple
 	var total int64
-	gscs, total, err = models.GSCQueryLikeByPage("", open_id, page_size_int, page_num_int)
+	gscs, total, err = models.GSCQueryLikeByPage("", open_id, page_size_int, page_num_int, search_pattern)
 	if err != nil {
 		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
 		return

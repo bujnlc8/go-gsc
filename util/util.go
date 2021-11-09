@@ -69,17 +69,17 @@ func GetConfStr(name string) string {
 	return os.Getenv(name)
 }
 
-var RE = regexp.MustCompile("[。？！，；、, ? . ! ; \\s]")
+var RE = regexp.MustCompile("[。？！，；、, ? . ! ; \\s ·]")
 
 func SplitString(s string) []string {
-	s = RE.ReplaceAllString(s, "")
+	s = strings.TrimSpace(s)
 	if utf8.RuneCountInString(s) <= 2 {
 		return []string{s}
 	}
 	res := JieBa.Cut(s, true)
 	newRes := make([]string, 0)
 	for _, ss := range res {
-		ss = strings.ReplaceAll(ss, " ", "")
+		ss = RE.ReplaceAllString(ss, "")
 		if utf8.RuneCountInString(ss) <= 0 {
 			continue
 		}
@@ -88,15 +88,15 @@ func SplitString(s string) []string {
 	return newRes
 }
 
-func AgainstSting(s string) string {
+func AgainstString(s string) string {
 	splitRes := SplitString(s)
-	// 如果分词数量小于3，全部匹配
+	// 如果分词数量小于4，全部匹配
 	splitLen := len(splitRes)
-	if splitLen <= 2 {
+	if splitLen <= 3 {
 		return "+" + strings.Join(splitRes, " +")
 	}
 	res := ""
-	l := int(float64(splitLen) * 0.7)
+	l := int(float64(splitLen) * 0.8)
 	for i, qq := range splitRes {
 		if i < l {
 			res += " +" + qq
@@ -105,6 +105,17 @@ func AgainstSting(s string) string {
 		}
 	}
 	return res
+}
+
+func MatchStringBySearchPattern(search_pattern string) string {
+	if search_pattern == "title" {
+		return "MATCH(work_title)"
+	} else if search_pattern == "content" {
+		return "MATCH(content, foreword)"
+	} else if search_pattern == "author" {
+		return "MATCH(work_author)"
+	}
+	return "MATCH(work_author, work_title, work_dynasty, content)"
 }
 
 func init() {

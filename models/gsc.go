@@ -202,14 +202,14 @@ func GSCQuery(q string) []GSC {
 	var rows *sql.Rows
 	var err error
 	if q != "音频" {
-		againstS := util.AgainstSting(q)
+		againstS := util.AgainstString(q)
 		rows, err = util.DB.Query(
 			"SELECT `id`, work_title, work_author, work_dynasty, " +
 				"content, translation, intro, annotation_, foreword, appreciation, " +
 				"master_comment, layout, audio_id , MATCH(work_author, work_title, work_dynasty, content)" +
 				" AGAINST ('" + againstS + "' IN BOOLEAN MODE) AS score FROM gsc " +
 				" WHERE MATCH(work_author, work_title, work_dynasty, content) " +
-				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE) ORDER BY score DESC,audio_id DESC LIMIT 500")
+				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE) ORDER BY audio_id DESC,score DESC LIMIT 500")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -225,25 +225,24 @@ func GSCQuery(q string) []GSC {
 	return processRows(rows)
 }
 
-func GSCQueryByPage(q string, page_size int64, page_num int64) ([]GSCSimple, int64, error) {
+func GSCQueryByPage(q string, page_size int64, page_num int64, search_pattern string) ([]GSCSimple, int64, error) {
 	var rows *sql.Rows
 	var err error
 	offset := (page_num - 1) * page_size
 	var total int64
 	if q != "音频" {
-		againstS := util.AgainstSting(q)
-		rows, err = util.DB.Query(
-			"SELECT `id`, work_title, work_author, work_dynasty, "+
-				"SUBSTRING(content, 1, 50) AS c, audio_id , MATCH(work_author, work_title, work_dynasty, content)"+
-				" AGAINST ('"+againstS+"' IN BOOLEAN MODE) AS score FROM gsc "+
-				" WHERE MATCH(work_author, work_title, work_dynasty, content) "+
-				"AGAINST ('"+againstS+"' IN  BOOLEAN MODE) ORDER BY score DESC,audio_id DESC LIMIT ? OFFSET ?", page_size, offset)
+		againstS := util.AgainstString(q)
+		matchS := util.MatchStringBySearchPattern(search_pattern)
+		sql := fmt.Sprintf("SELECT `id`, work_title, work_author, work_dynasty, "+
+			"SUBSTRING(content, 1, 50) AS c, audio_id , %s  AGAINST ('%s' IN BOOLEAN MODE) AS score FROM gsc WHERE %s "+
+			"AGAINST ('%s' IN  BOOLEAN MODE) ORDER BY audio_id DESC,score DESC LIMIT %d OFFSET %d", matchS, againstS, matchS, againstS, page_size, offset)
+
+		rows, err = util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, err
 		}
-		total_rows, err := util.DB.Query(
-			"SELECT count(1) AS c FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
-				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE)")
+		sql = fmt.Sprintf("SELECT count(1) AS c FROM gsc WHERE %s AGAINST ('%s' IN  BOOLEAN MODE)", matchS, againstS)
+		total_rows, err := util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -279,13 +278,13 @@ func GSCQueryLike(q string, open_id string) []GSC {
 	}
 	gscids_str := strings.Join(gscids, ",")
 	if q != "" {
-		againstS := util.AgainstSting(q)
+		againstS := util.AgainstString(q)
 		rows, err = util.DB.Query(
 			"SELECT `id`, work_title, work_author, work_dynasty, content, " +
 				"translation, intro, annotation_, foreword, appreciation, master_comment, layout," +
 				"audio_id,  MATCH(work_author, work_title, work_dynasty, content) AGAINST ('" + againstS + "' IN BOOLEAN MODE) AS score " +
 				"FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
-				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ") ORDER BY score DESC, audio_id DESC")
+				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ") ORDER BY audio_id DESC, score DESC")
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -301,7 +300,7 @@ func GSCQueryLike(q string, open_id string) []GSC {
 	return processRows(rows)
 }
 
-func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int64) ([]GSCSimple, int64, error) {
+func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int64, search_pattern string) ([]GSCSimple, int64, error) {
 	rows, err := util.DB.Query(
 		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ", open_id)
 	if err != nil {
@@ -320,18 +319,17 @@ func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int6
 	offset := (page_num - 1) * page_size
 	gscids_str := strings.Join(gscids, ",")
 	if q != "" {
-		againstS := util.AgainstSting(q)
-		rows, err = util.DB.Query(
-			"SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, "+
-				"audio_id,  MATCH(work_author, work_title, work_dynasty, content) AGAINST ('"+againstS+"' IN BOOLEAN MODE) AS score "+
-				"FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) "+
-				"AGAINST ('"+againstS+"' IN BOOLEAN MODE) AND  `id` IN ("+gscids_str+") ORDER BY score DESC, audio_id DESC LIMIT ? OFFSET ?", page_size, offset)
+		againstS := util.AgainstString(q)
+		matchS := util.MatchStringBySearchPattern(search_pattern)
+		sql := fmt.Sprintf("SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, audio_id, "+
+			" %s AGAINST ('%s' IN BOOLEAN MODE) AS score FROM gsc WHERE %s "+
+			"AGAINST ('%s' IN BOOLEAN MODE) AND  `id` IN (%s) ORDER BY audio_id DESC, score DESC LIMIT %d OFFSET %d", matchS, againstS, matchS, againstS, gscids_str, page_size, offset)
+		rows, err = util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, err
 		}
-		total_rows, err := util.DB.Query(
-			"SELECT count(1) as c FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
-				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ")")
+		sql = fmt.Sprintf("SELECT count(1) as c FROM gsc WHERE %s AGAINST ('%s' IN BOOLEAN MODE) AND  `id` IN (%s)", matchS, againstS, gscids_str)
+		total_rows, err := util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -339,9 +337,8 @@ func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int6
 			total_rows.Scan(&total)
 		}
 	} else {
-		rows, err = util.DB.Query(
-			"SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, "+
-				"audio_id, 0 FROM gsc WHERE `id` IN ("+gscids_str+") ORDER BY audio_id DESC LIMIT ? OFFSET ?", page_size, offset)
+		sql := fmt.Sprintf("SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, audio_id, 0 FROM gsc WHERE `id` IN (%s) ORDER BY audio_id DESC LIMIT %d OFFSET %d", gscids_str, page_size, offset)
+		rows, err = util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, err
 		}
