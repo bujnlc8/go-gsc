@@ -114,6 +114,8 @@ func MatchStringBySearchPattern(search_pattern string) string {
 		return "MATCH(content, foreword)"
 	} else if search_pattern == "author" {
 		return "MATCH(work_author)"
+	} else if search_pattern == "dynasty" {
+		return "MATCH(work_dynasty)"
 	}
 	return "MATCH(work_author, work_title, work_dynasty, content)"
 }

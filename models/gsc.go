@@ -236,7 +236,6 @@ func GSCQueryByPage(q string, page_size int64, page_num int64, search_pattern st
 		sql := fmt.Sprintf("SELECT `id`, work_title, work_author, work_dynasty, "+
 			"SUBSTRING(content, 1, 50) AS c, audio_id , %s  AGAINST ('%s' IN BOOLEAN MODE) AS score FROM gsc WHERE %s "+
 			"AGAINST ('%s' IN  BOOLEAN MODE) ORDER BY audio_id DESC,score DESC LIMIT %d OFFSET %d", matchS, againstS, matchS, againstS, page_size, offset)
-
 		rows, err = util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, err
