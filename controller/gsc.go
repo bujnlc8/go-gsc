@@ -36,11 +36,11 @@ func HandleIndexAll(ctx *gin.Context) {
 }
 
 func HandleShortIndex(ctx *gin.Context) {
-	gscs := models.GetGSCSimple30()
+	gscs := models.GetGSCSimple20()
 	if len(gscs) == 0 {
 		gscs = make([]models.GSCSimple, 0)
 	}
-	ReturnData := models.ReturnSimpleDataList{Code: 0, Data: models.ReturnSimpleDataIner{Msg: "success", Data: gscs, Total: 30, SplitWords: ""}}
+	ReturnData := models.ReturnSimpleDataList{Code: 0, Data: models.ReturnSimpleDataIner{Msg: "success", Data: gscs, Total: 20, SplitWords: ""}}
 	ctx.JSON(200, ReturnData)
 }
 
