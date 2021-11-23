@@ -192,7 +192,7 @@ func GetGSC30() []GSC {
 func GetGSCSimple20() []GSCSimple {
 	rows, err := util.DB.Query(
 		"SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50), " +
-			"audio_id, 0 FROM gsc WHERE audio_id > 0 ORDER BY RAND() LIMIT 20")
+			"audio_id, 0 FROM gsc WHERE audio_id > 0 and `id` <= 8000 ORDER BY RAND() LIMIT 20")
 	if err != nil {
 		fmt.Println(err)
 	}
