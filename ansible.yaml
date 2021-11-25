@@ -16,6 +16,7 @@
           wxappSecret: "{{wxappSecret}}"
           listenAddr: "{{listenAddr}}"
           mysqlDSN: "{{mysqlDSN}}"
+          md5Secret: "{{md5Secret}}"
         published_ports:
           - "8081:8080"
     
@@ -32,5 +33,6 @@
           wxappSecret: "{{wxappSecret}}"
           listenAddr: "{{listenAddr}}"
           mysqlDSN: "{{mysqlDSN}}"
+          md5Secret: "{{md5Secret}}"
         published_ports:
           - "8082:8080"

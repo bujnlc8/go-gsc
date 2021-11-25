@@ -107,6 +107,12 @@ type ReturnLike struct {
 	Data string `json:"data"`
 }
 
+type CaptchaResp struct {
+	Code    int8   `json:"code"`
+	Token   string `json:"token"`
+	Captcha string `json:"captcha"`
+}
+
 type Response struct {
 	Errcode int    `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
