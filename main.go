@@ -23,6 +23,7 @@ func setRoute(r *gin.Engine) {
 	r.GET("/gsc/mylike_by_page/:open_id", controller.QueryMyLikeByPage)
 	r.GET("/gsc/short_index", controller.HandleShortIndex)
 	r.GET("/gsc/query_by_page_a/:page/:q/:open_id", controller.HandleQueryByPage)
+	r.POST("/gsc/feedback/:open_id/:gsc_id", controller.HandleUserFeedBack)
 
 }
 func main() {

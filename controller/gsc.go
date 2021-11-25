@@ -1,17 +1,11 @@
 package controller
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/bujnlc8/go-gsc/models"
 	"github.com/gin-gonic/gin"
 )
-
-func GetGSCById(id int64, open_id string) models.GSC {
-	gsc := models.GetGSCById(id, open_id)
-	return gsc
-}
 
 func HandleIndex(ctx *gin.Context) {
 	id_ := ctx.Param("id")
@@ -20,14 +14,22 @@ func HandleIndex(ctx *gin.Context) {
 	} else {
 		id, _ := strconv.ParseInt(id_, 10, 64)
 		open_id := ctx.Param("open_id")
-		gsc := GetGSCById(id, open_id)
+		gsc, err := models.GetGSCById(id, open_id)
+		if err != nil {
+			ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
+			return
+		}
 		Returndata := models.ReturnDataSingle{Code: 0, Data: models.ReturnDataInerSingle{Msg: "success", Data: gsc}}
 		ctx.JSON(200, Returndata)
 	}
 }
 
 func HandleIndexAll(ctx *gin.Context) {
-	gscs := models.GetGSC30()
+	gscs, err := models.GetGSC30()
+	if err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
+		return
+	}
 	if len(gscs) == 0 {
 		gscs = make([]models.GSC, 0)
 	}
@@ -36,7 +38,11 @@ func HandleIndexAll(ctx *gin.Context) {
 }
 
 func HandleShortIndex(ctx *gin.Context) {
-	gscs := models.GetGSCSimple20()
+	gscs, err := models.GetGSCSimple20()
+	if err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
+		return
+	}
 	if len(gscs) == 0 {
 		gscs = make([]models.GSCSimple, 0)
 	}
@@ -49,10 +55,15 @@ func HandleQuery(ctx *gin.Context) {
 	page := ctx.Param("page")
 	open_id := ctx.Param("open_id")
 	var gscs []models.GSC
+	var err error
 	if page == "main" {
-		gscs = models.GSCQuery(q)
+		gscs, err = models.GSCQuery(q)
 	} else {
-		gscs = models.GSCQueryLike(q, open_id)
+		gscs, err = models.GSCQueryLike(q, open_id)
+	}
+	if err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
+		return
 	}
 	if len(gscs) == 0 {
 		gscs = make([]models.GSC, 0)
@@ -94,7 +105,6 @@ func HandleQueryByPage(ctx *gin.Context) {
 		gscs, total, splitWords, err = models.GSCQueryLikeByPage(q, open_id, page_size_int, page_num_int, search_pattern)
 	}
 	if err != nil {
-		fmt.Println(err)
 		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
 		return
 	}
@@ -105,7 +115,12 @@ func HandleQueryByPage(ctx *gin.Context) {
 func QueryMyLike(ctx *gin.Context) {
 	open_id := ctx.Param("open_id")
 	var gscs []models.GSC
-	gscs = models.GSCQueryLike("", open_id)
+	var err error
+	gscs, err = models.GSCQueryLike("", open_id)
+	if err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: 500, Msg: "系统错误"})
+		return
+	}
 	if len(gscs) == 0 {
 		gscs = make([]models.GSC, 0)
 	}
