@@ -35,7 +35,7 @@ func Code2Session(ctx *gin.Context) {
 	url := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%s&grant_type=authorization_code&js_code=%s&secret=%s", wxappId, code, wxappSecret)
 	res, err := Get(url)
 	if err != nil {
-		fmt.Println(err)
+		ctx.JSON(500, models.ReturnOpenId{Code: -1, Data: models.LoginResponse{OpenID: "", SessionKey: "", UnionID: ""}})
 	}
 	ctx.JSON(200, models.ReturnOpenId{Code: 0, Data: res})
 }
@@ -45,20 +45,19 @@ func Get(url string) (lres models.LoginResponse, err error) {
 	client := &http.Client{Transport: tr}
 	resp, err := client.Get(url)
 	if err != nil {
-		fmt.Println(err)
+		return models.LoginResponse{}, err
 	}
 	defer resp.Body.Close()
 	var data models.LLoginResponse
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
-		return
+		return models.LoginResponse{}, err
 	}
 
 	if data.Errcode != 0 {
 		err = errors.New(data.Errmsg)
-		return
+		return models.LoginResponse{}, err
 	}
-
 	lres = data.LoginResponse
 	return
 }
@@ -144,9 +143,33 @@ func HandleCaptcha(ctx *gin.Context) {
 		str,
 		md5Data,
 	); err != nil {
-		fmt.Println(err)
 		ctx.JSON(500, models.ErrorResp{Code: -1, Msg: "系统错误"})
 		return
 	}
 	ctx.JSON(200, models.CaptchaResp{Code: 0, Token: md5Data, Captcha: b64Data})
+}
+
+func HandleAd(ctx *gin.Context) {
+	openId := ctx.Param("open_id")
+	if len(openId) == 0 {
+		ctx.JSON(400, models.ErrorResp{Code: -1, Msg: "参数错误"})
+		return
+	}
+	if rows, err := util.DB.Query(
+		"SELECT COUNT(1) AS c FROM ad_whitelist WHERE OPEN_ID = ? AND IS_VALID = 1",
+		openId,
+	); err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: -1, Msg: "数据库错误"})
+		return
+	} else {
+		var count int64
+		for rows.Next() {
+			rows.Scan(&count)
+		}
+		if count == 0 {
+			ctx.JSON(200, models.ReturnLike{Code: 0, Data: "invalid"})
+		} else {
+			ctx.JSON(200, models.ReturnLike{Code: 0, Data: "valid"})
+		}
+	}
 }
