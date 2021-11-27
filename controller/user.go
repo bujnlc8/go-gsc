@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"image/png"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -172,4 +173,50 @@ func HandleAd(ctx *gin.Context) {
 			ctx.JSON(200, models.ReturnLike{Code: 0, Data: "valid"})
 		}
 	}
+}
+
+func Code2SessionAliPay(ctx *gin.Context) {
+	code := ctx.Param("code")
+	appId := util.GetConfStr("alipayAppId")
+	time := time.Now().Format("2006-01-02 15:04:05")
+	signS := fmt.Sprintf(
+		"app_id=%s&charset=UTF-8&code=%s&format=json&grant_type=authorization_code&method=alipay.system.oauth.token&sign_type=RSA2&timestamp=%s&version=1.0",
+		appId,
+		code,
+		time,
+	)
+	alipayRsa := util.GetConfStr("alipayRsa")
+	sign := util.Rsa2Sign(signS, alipayRsa)
+	url := fmt.Sprintf(
+		"https://openapi.alipay.com/gateway.do?app_id=%s&charset=UTF-8&code=%s&format=json&grant_type=authorization_code&method=alipay.system.oauth.token&sign_type=RSA2&timestamp=%s&version=1.0&sign=%s",
+		appId,
+		code,
+		url.QueryEscape(time),
+		url.QueryEscape(sign),
+	)
+	res, err := GetAlipay(url)
+	if err != nil {
+		ctx.JSON(500, models.ReturnOpenId{Code: -1, Data: models.LoginResponse{OpenID: "", SessionKey: "", UnionID: ""}})
+		return
+	}
+	ctx.JSON(200, models.ReturnOpenId{Code: 0, Data: models.LoginResponse{OpenID: res.AlipaySystemOauthTokenResponse.UserId, SessionKey: "", UnionID: ""}})
+}
+
+func GetAlipay(url string) (models.AlipayResponse, error) {
+	tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+	client := &http.Client{Transport: tr}
+	req, _ := http.NewRequest("POST", url, nil)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded;")
+	req.Header.Set("Host", "openapi.alipay.com")
+	resp, err := client.Do(req)
+	if err != nil {
+		return models.AlipayResponse{}, err
+	}
+	defer resp.Body.Close()
+	var data models.AlipayResponse
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		return models.AlipayResponse{}, err
+	}
+	return data, nil
 }

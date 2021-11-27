@@ -26,7 +26,7 @@ func setRoute(r *gin.Engine) {
 	r.POST("/gsc/feedback/:open_id/:gsc_id", controller.HandleUserFeedBack)
 	r.GET("/user/:open_id/captcha", controller.HandleCaptcha)
 	r.GET("/user/:open_id/ad", controller.HandleAd)
-
+	r.GET("/user/auth_alipay/:code", controller.Code2SessionAliPay)
 }
 func main() {
 	if os.Getenv("GSC_DEBUG") == "true" {

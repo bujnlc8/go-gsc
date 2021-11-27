@@ -123,6 +123,16 @@ type LoginResponse struct {
 	UnionID    string `json:"unionid"`
 }
 
+type AlipayResponse_ struct {
+	AccessToken string `json:"access_token"`
+	UserId      string `json:"user_id"`
+}
+
+type AlipayResponse struct {
+	AlipaySystemOauthTokenResponse AlipayResponse_ `json:"alipay_system_oauth_token_response"`
+	Sign                           string          `json:"sign"`
+}
+
 type LLoginResponse struct {
 	Response
 	LoginResponse

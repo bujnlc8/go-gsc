@@ -1,8 +1,15 @@
 package util
 
 import (
+	"crypto"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/pem"
 	"os"
 	"regexp"
 	"strings"
@@ -73,4 +80,45 @@ func GetMd5(s string) string {
 	md5Ctx := md5.New()
 	md5Ctx.Write(data)
 	return hex.EncodeToString(md5Ctx.Sum(nil))
+}
+
+const (
+	// 私钥 PEMBEGIN 开头
+	PEMBEGIN = "-----BEGIN RSA PRIVATE KEY-----\n"
+	// 私钥 PEMEND 结尾
+	PEMEND = "\n-----END RSA PRIVATE KEY-----"
+	// 公钥 PEMBEGIN 开头
+	PUBPEMBEGIN = "-----BEGIN PUBLIC KEY-----\n"
+	// 公钥 PEMEND 结尾
+	PUBPEMEND = "\n-----END PUBLIC KEY-----"
+)
+
+func FormatPrivateKey(privateKey string) string {
+	if !strings.HasPrefix(privateKey, PEMBEGIN) {
+		privateKey = PEMBEGIN + privateKey
+	}
+	if !strings.HasSuffix(privateKey, PEMEND) {
+		privateKey = privateKey + PEMEND
+	}
+	return privateKey
+}
+
+func Rsa2Sign(s string, privateKey string) string {
+	privateKey = FormatPrivateKey(privateKey)
+	block, _ := pem.Decode([]byte(privateKey))
+	if block == nil {
+		return ""
+	}
+	priKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		return ""
+	}
+	h := sha256.New()
+	h.Write([]byte(s))
+	digest := h.Sum(nil)
+	signature, err := rsa.SignPKCS1v15(rand.Reader, priKey, crypto.SHA256, digest)
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(signature)
 }
