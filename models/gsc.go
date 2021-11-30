@@ -230,7 +230,7 @@ func GSCQuery(q string) ([]GSC, error) {
 				"master_comment, layout, audio_id , MATCH(work_author, work_title, work_dynasty, content)" +
 				" AGAINST ('" + againstS + "' IN BOOLEAN MODE) AS score FROM gsc " +
 				" WHERE MATCH(work_author, work_title, work_dynasty, content) " +
-				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE) ORDER BY audio_id DESC,score DESC LIMIT 500")
+				"AGAINST ('" + againstS + "' IN  BOOLEAN MODE) ORDER BY audio_id DESC,score DESC LIMIT 20")
 		if err != nil {
 			return nil, err
 		}

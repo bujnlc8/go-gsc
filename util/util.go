@@ -87,7 +87,6 @@ func GetMd5(s string) string {
 func GetMd5ForAudioUrl(fileName string) string {
 	time := time.Now().Format("200601021504")
 	data := []byte(os.Getenv("audioSecret") + time + fileName)
-	fmt.Printf("%s", data)
 	md5Ctx := md5.New()
 	md5Ctx.Write(data)
 	h := hex.EncodeToString(md5Ctx.Sum(nil))
