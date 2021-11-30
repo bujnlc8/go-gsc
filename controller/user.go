@@ -37,6 +37,7 @@ func Code2Session(ctx *gin.Context) {
 	res, err := Get(url)
 	if err != nil {
 		ctx.JSON(500, models.ReturnOpenId{Code: -1, Data: models.LoginResponse{OpenID: "", SessionKey: "", UnionID: ""}})
+		return
 	}
 	ctx.JSON(200, models.ReturnOpenId{Code: 0, Data: res})
 }
