@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/bujnlc8/go-gsc/models"
+	"github.com/bujnlc8/go-gsc/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -204,4 +205,13 @@ func SetUserDisLike(ctx *gin.Context) {
 
 		}
 	}
+}
+
+func GetSignUrlForAudio(ctx *gin.Context) {
+	audioRequest := models.AudioRequest{}
+	if err := ctx.BindJSON(&audioRequest); err != nil {
+		ctx.JSON(400, models.ErrorResp{Code: -1, Msg: "参数错误"})
+		return
+	}
+	ctx.JSON(200, models.ReturnLike{Code: 0, Data: util.GetMd5ForAudioUrl(audioRequest.FileName)})
 }

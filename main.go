@@ -27,6 +27,7 @@ func setRoute(r *gin.Engine) {
 	r.GET("/user/:open_id/captcha", controller.HandleCaptcha)
 	r.GET("/user/:open_id/ad", controller.HandleAd)
 	r.GET("/user/auth_alipay/:code", controller.Code2SessionAliPay)
+	r.POST("/gsc/audio_url", controller.GetSignUrlForAudio)
 }
 func main() {
 	if os.Getenv("GSC_DEBUG") == "true" {

@@ -10,9 +10,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/yanyiwu/gojieba"
@@ -80,6 +82,16 @@ func GetMd5(s string) string {
 	md5Ctx := md5.New()
 	md5Ctx.Write(data)
 	return hex.EncodeToString(md5Ctx.Sum(nil))
+}
+
+func GetMd5ForAudioUrl(fileName string) string {
+	time := time.Now().Format("200601021504")
+	data := []byte(os.Getenv("audioSecret") + time + fileName)
+	fmt.Printf("%s", data)
+	md5Ctx := md5.New()
+	md5Ctx.Write(data)
+	h := hex.EncodeToString(md5Ctx.Sum(nil))
+	return fmt.Sprintf("%s/%s/%s%s", os.Getenv("audioDomain"), time, h, fileName)
 }
 
 const (

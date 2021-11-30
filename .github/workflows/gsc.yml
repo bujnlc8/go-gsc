@@ -68,5 +68,5 @@ jobs:
           playbookName: "ansible.yaml"
           verbosity: "vv"
           KeyFile: "id_rsa"
-          extraVars: "-e ANSIBLE_HOST_KEY_CHECKING=False -e wxAppId=${{secrets.WXAPPID}} -e wxappSecret=${{secrets.WXAPPSECRET}} -e mysqlDSN=${{secrets.MYSQLDSN}} -e listenAddr=${{secrets.LISTENADDR}} -e image_tag=${{ env.RELEASE_VERSION }} -e md5Secret=${{secrets.MD5SECRET}}  -e alipayAppId=${{secrets.ALIPAYAPPID}} -e alipayRsa=${{secrets.ALIPAYRSA}}  -i hosts"
+          extraVars: "-e ANSIBLE_HOST_KEY_CHECKING=False -e wxAppId=${{secrets.WXAPPID}} -e wxappSecret=${{secrets.WXAPPSECRET}} -e mysqlDSN=${{secrets.MYSQLDSN}} -e listenAddr=${{secrets.LISTENADDR}} -e image_tag=${{ env.RELEASE_VERSION }} -e md5Secret=${{secrets.MD5SECRET}}  -e alipayAppId=${{secrets.ALIPAYAPPID}} -e alipayRsa=${{secrets.ALIPAYRSA}}  -e audioSecret=${{secrets.AUDIOSECRET}}  -e audioDomain=${{secrets.AUDIODOMAIN}} -i hosts"
 

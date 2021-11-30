@@ -138,6 +138,10 @@ type LLoginResponse struct {
 	LoginResponse
 }
 
+type AudioRequest struct {
+	FileName string `json:"filename"`
+}
+
 func processRows(rows *sql.Rows) []GSC {
 	var GSCS []GSC
 	for rows.Next() {
