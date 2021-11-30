@@ -31,9 +31,24 @@ type UserFeedBackData struct {
 
 func Code2Session(ctx *gin.Context) {
 	code := ctx.Param("code")
-	wxappId := util.GetConfStr("wxAppId")
-	wxappSecret := util.GetConfStr("wxappSecret")
-	url := fmt.Sprintf("https://api.weixin.qq.com/sns/jscode2session?appid=%s&grant_type=authorization_code&js_code=%s&secret=%s", wxappId, code, wxappSecret)
+	appType := ctx.DefaultQuery("app_type", "wechat")
+	appId := ""
+	appSecret := ""
+	host := ""
+	if appType == "wechat" {
+		appId = util.GetConfStr("wxAppId")
+		appSecret = util.GetConfStr("wxAppSecret")
+		host = "api.weixin.qq.com"
+	} else if appType == "qq" {
+		appId = util.GetConfStr("qqAppId")
+		appSecret = util.GetConfStr("qqAppSecret")
+		host = "api.q.qq.com"
+	}
+	if len(appId) == 0 {
+		ctx.JSON(400, models.ErrorResp{Code: -1, Msg: "参数错误"})
+		return
+	}
+	url := fmt.Sprintf("https://%s/sns/jscode2session?appid=%s&grant_type=authorization_code&js_code=%s&secret=%s", host, appId, code, appSecret)
 	res, err := Get(url)
 	if err != nil {
 		ctx.JSON(500, models.ReturnOpenId{Code: -1, Data: models.LoginResponse{OpenID: "", SessionKey: "", UnionID: ""}})

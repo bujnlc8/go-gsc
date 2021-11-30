@@ -13,7 +13,9 @@
         restart_policy: always
         env:
           wxAppId: "{{wxAppId}}"
-          wxappSecret: "{{wxappSecret}}"
+          wxAppSecret: "{{wxAppSecret}}"
+          qqAppId: "{{qqAppId}}"
+          qqAppSecret: "{{qqAppSecret}}"
           listenAddr: "{{listenAddr}}"
           mysqlDSN: "{{mysqlDSN}}"
           md5Secret: "{{md5Secret}}"
@@ -36,7 +38,9 @@
         restart_policy: always
         env:
           wxAppId: "{{wxAppId}}"
-          wxappSecret: "{{wxappSecret}}"
+          wxAppSecret: "{{wxAppSecret}}"
+          qqAppId: "{{qqAppId}}"
+          qqAppSecret: "{{qqAppSecret}}"
           listenAddr: "{{listenAddr}}"
           mysqlDSN: "{{mysqlDSN}}"
           md5Secret: "{{md5Secret}}"
