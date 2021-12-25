@@ -284,7 +284,7 @@ func GSCQueryByPage(q string, page_size int64, page_num int64, search_pattern st
 
 func GSCQueryLike(q string, open_id string) ([]GSC, error) {
 	rows, err := util.DB.Query(
-		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ", open_id)
+		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ORDER BY id DESC", open_id)
 	if err != nil {
 		return nil, err
 	}
@@ -305,7 +305,7 @@ func GSCQueryLike(q string, open_id string) ([]GSC, error) {
 				"translation, intro, annotation_, foreword, appreciation, master_comment, layout," +
 				"audio_id,  MATCH(work_author, work_title, work_dynasty, content) AGAINST ('" + againstS + "' IN BOOLEAN MODE) AS score " +
 				"FROM gsc WHERE MATCH(work_author, work_title, work_dynasty, content) " +
-				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ") ORDER BY audio_id DESC, score DESC")
+				"AGAINST ('" + againstS + "' IN BOOLEAN MODE) AND  `id` IN (" + gscids_str + ") ORDER BY score DESC")
 		if err != nil {
 			return nil, err
 		}
@@ -313,7 +313,7 @@ func GSCQueryLike(q string, open_id string) ([]GSC, error) {
 		rows, err = util.DB.Query(
 			"SELECT `id`, work_title, work_author, work_dynasty, content, " +
 				"translation, intro, annotation_, foreword, appreciation, master_comment, layout," +
-				"audio_id, 0 FROM gsc WHERE `id` IN (" + gscids_str + ") ORDER BY audio_id DESC")
+				"audio_id, 0 FROM gsc WHERE `id` IN (" + gscids_str + ")")
 		if err != nil {
 			return nil, err
 		}
@@ -323,7 +323,7 @@ func GSCQueryLike(q string, open_id string) ([]GSC, error) {
 
 func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int64, search_pattern string) ([]GSCSimple, int64, string, error) {
 	rows, err := util.DB.Query(
-		"SELECT gsc_id FROM user_like_gsc WHERE open_id=? ", open_id)
+		"SELECT gsc_id FROM user_like_gsc WHERE open_id=?", open_id)
 	if err != nil {
 		return nil, 0, "", err
 	}
@@ -343,9 +343,9 @@ func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int6
 	if q != "" {
 		againstS = util.AgainstString(q)
 		matchS := util.MatchStringBySearchPattern(search_pattern)
-		sql := fmt.Sprintf("SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, audio_id, "+
-			" %s AGAINST ('%s' IN BOOLEAN MODE) AS score FROM gsc WHERE %s "+
-			"AGAINST ('%s' IN BOOLEAN MODE) AND  `id` IN (%s) ORDER BY audio_id DESC, score DESC LIMIT %d OFFSET %d", matchS, againstS, matchS, againstS, gscids_str, page_size, offset)
+		sql := fmt.Sprintf("SELECT a.`id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, audio_id, "+
+			" %s AGAINST ('%s' IN BOOLEAN MODE) AS score FROM gsc as a LEFT JOIN user_like_gsc AS b ON a.id = b.gsc_id WHERE %s "+
+			"AGAINST ('%s' IN BOOLEAN MODE) AND  b.open_id = '%s' ORDER BY score DESC, b.id DESC LIMIT %d OFFSET %d", matchS, againstS, matchS, againstS, open_id, page_size, offset)
 		rows, err = util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, "", err
@@ -359,7 +359,7 @@ func GSCQueryLikeByPage(q string, open_id string, page_size int64, page_num int6
 			total_rows.Scan(&total)
 		}
 	} else {
-		sql := fmt.Sprintf("SELECT `id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, audio_id, 0 FROM gsc WHERE `id` IN (%s) ORDER BY audio_id DESC LIMIT %d OFFSET %d", gscids_str, page_size, offset)
+		sql := fmt.Sprintf("SELECT a.`id`, work_title, work_author, work_dynasty, SUBSTRING(content, 1, 50) AS c, audio_id, 0 FROM gsc AS a left join user_like_gsc as b on a.id = b.gsc_id WHERE b.open_id = '%s' ORDER BY b.id DESC LIMIT %d OFFSET %d", open_id, page_size, offset)
 		rows, err = util.DB.Query(sql)
 		if err != nil {
 			return nil, 0, "", err
