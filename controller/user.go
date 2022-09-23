@@ -236,3 +236,24 @@ func GetAlipay(url string) (models.AlipayResponse, error) {
 	}
 	return data, nil
 }
+
+func HandleCheckCaptcha(ctx *gin.Context) {
+	open_id := ctx.DefaultQuery("open_id", "")
+	token := ctx.DefaultQuery("token", "")
+	captcha := ctx.DefaultQuery("captcha", "")
+	res, err := util.DB.Exec(
+		"UPDATE captcha set is_valid = 0 where open_id = ? and md5 = ? and str = ? and is_valid = 1",
+		open_id,
+		token,
+		captcha,
+	)
+	if err != nil {
+		ctx.JSON(500, models.ErrorResp{Code: -1, Msg: "数据库异常"})
+		return
+	}
+	if affected, _ := res.RowsAffected(); affected == 0 {
+		ctx.JSON(200, models.ErrorResp{Code: -1, Msg: "验证码错误"})
+		return
+	}
+	ctx.JSON(200, models.ErrorResp{Code: 0, Msg: "验证码正确"})
+}

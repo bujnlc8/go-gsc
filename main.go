@@ -25,6 +25,7 @@ func setRoute(r *gin.Engine) {
 	r.GET("/gsc/query_by_page_a/:page/:q/:open_id", controller.HandleQueryByPage)
 	r.POST("/gsc/feedback/:open_id/:gsc_id", controller.HandleUserFeedBack)
 	r.GET("/user/:open_id/captcha", controller.HandleCaptcha)
+	r.GET("/user/check_captcha", controller.HandleCheckCaptcha)
 	r.GET("/user/:open_id/ad", controller.HandleAd)
 	r.GET("/user/auth_alipay/:code", controller.Code2SessionAliPay)
 	r.POST("/gsc/audio_url", controller.GetSignUrlForAudio)
