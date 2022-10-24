@@ -6,7 +6,7 @@
     - name: deploy gsc1...
       docker_container:
         name: gsc1
-        image: yy194131/gogsc:{{image_tag}}
+        image: registry.cn-beijing.aliyuncs.com/roselle-1/gogsc:{{image_tag}}
         state: started
         pull: true
         restart: true
@@ -31,7 +31,7 @@
     - name: deploy gsc2...
       docker_container:
         name: gsc2
-        image: yy194131/gogsc:{{image_tag}}
+        image: registry.cn-beijing.aliyuncs.com/roselle-1/gogsc:{{image_tag}}
         state: started
         pull: true
         restart: true

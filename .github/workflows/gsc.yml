@@ -29,8 +29,9 @@ jobs:
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        uses: docker/login-action@v2.1.0
         with:
+          registry: https://registry.cn-beijing.aliyuncs.com
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -39,7 +40,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: yy194131/gogsc:${{ env.RELEASE_VERSION }}
+          tags: registry.cn-beijing.aliyuncs.com/roselle-1/gogsc:${{ env.RELEASE_VERSION }}
 
   deploy:
     runs-on: ubuntu-18.04
@@ -69,4 +70,3 @@ jobs:
           verbosity: "vv"
           KeyFile: "id_rsa"
           extraVars: "-e ANSIBLE_HOST_KEY_CHECKING=False -e wxAppId=${{secrets.WXAPPID}} -e wxAppSecret=${{secrets.WXAPPSECRET}} -e mysqlDSN=${{secrets.MYSQLDSN}} -e listenAddr=${{secrets.LISTENADDR}} -e image_tag=${{ env.RELEASE_VERSION }} -e md5Secret=${{secrets.MD5SECRET}}  -e alipayAppId=${{secrets.ALIPAYAPPID}} -e alipayRsa=${{secrets.ALIPAYRSA}}  -e audioSecret=${{secrets.AUDIOSECRET}}  -e audioDomain=${{secrets.AUDIODOMAIN}}  -e qqAppId=${{secrets.QQAPPID}} -e qqAppSecret=${{secrets.QQAPPSECRET}}  -i hosts"
-
