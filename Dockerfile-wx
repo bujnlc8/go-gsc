@@ -1,0 +1,14 @@
+FROM golang:1.17-bullseye AS builder
+WORKDIR /gogsc
+RUN mkdir -p /gogsc
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o gsc main.go
+
+FROM debian:bullseye-slim
+WORKDIR /gogsc
+RUN mkdir -p /gogsc
+COPY --from=builder /app/gsc /gogsc/gsc
+RUN mkdir -p /home/runner/work/go-gsc/go-gsc/vendor/github.com/yanyiwu
+COPY vendor/github.com/yanyiwu/ /gogsc/vendor/github.com/yanyiwu/
+COPY comic.ttf .
+CMD ["/gogsc/gsc"]
