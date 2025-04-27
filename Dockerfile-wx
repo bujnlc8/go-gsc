@@ -1,14 +1,26 @@
-FROM golang:1.17-bullseye AS builder
-WORKDIR /gogsc
-RUN mkdir -p /gogsc
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o gsc main.go
+FROM golang:1.24-alpine AS builder
 
-FROM debian:bullseye-slim
-WORKDIR /gogsc
+RUN apk add --no-cache git make gcc musl-dev
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o myapp main.go
+
+FROM alpine:latest
+
 RUN mkdir -p /gogsc
-COPY --from=builder /app/gsc /gogsc/gsc
-RUN mkdir -p /home/runner/work/go-gsc/go-gsc/vendor/github.com/yanyiwu
-COPY vendor/github.com/yanyiwu/ /gogsc/vendor/github.com/yanyiwu/
-COPY comic.ttf .
-CMD ["/gogsc/gsc"]
+
+COPY dict.txt comic.ttf go.sum ./
+
+# 从构建阶段复制生成的二进制文件
+COPY --from=builder /app/myapp /gogsc/myapp
+
+WORKDIR /gogsc
+
+CMD ["/gogsc/myapp"]

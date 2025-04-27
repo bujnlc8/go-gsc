@@ -27,7 +27,7 @@
           - "8081:8080"
         volumes:
           - /etc/localtime:/etc/localtime:ro
-    
+
     - name: deploy gsc2...
       docker_container:
         name: gsc2

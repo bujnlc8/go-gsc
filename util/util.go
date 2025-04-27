@@ -17,10 +17,14 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/yanyiwu/gojieba"
+	"github.com/wangbin/jiebago"
 )
 
-var JieBa = gojieba.NewJieba()
+var JieBa jiebago.Segmenter
+
+func init() {
+	JieBa.LoadDictionary("dict.txt")
+}
 
 func GetConfStr(name string) string {
 	return os.Getenv(name)
@@ -35,7 +39,7 @@ func SplitString(s string) []string {
 	}
 	res := JieBa.Cut(s, true)
 	newRes := make([]string, 0)
-	for _, ss := range res {
+	for ss := range res {
 		ss = RE.ReplaceAllString(ss, "")
 		if utf8.RuneCountInString(ss) <= 0 {
 			continue
