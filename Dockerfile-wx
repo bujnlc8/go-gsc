@@ -16,11 +16,11 @@ FROM alpine:latest
 
 RUN mkdir -p /gogsc
 
-COPY dict.txt comic.ttf go.sum ./
+WORKDIR /gogsc
+
+COPY dict.txt comic.ttf ./
 
 # 从构建阶段复制生成的二进制文件
 COPY --from=builder /app/myapp /gogsc/myapp
-
-WORKDIR /gogsc
 
 CMD ["/gogsc/myapp"]
