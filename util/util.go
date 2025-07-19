@@ -14,7 +14,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/wangbin/jiebago"
@@ -89,12 +88,12 @@ func GetMd5(s string) string {
 }
 
 func GetMd5ForAudioUrl(fileName string) string {
-	time := time.Now().Format("200601021504")
-	data := []byte(os.Getenv("audioSecret") + time + fileName)
-	md5Ctx := md5.New()
-	md5Ctx.Write(data)
-	h := hex.EncodeToString(md5Ctx.Sum(nil))
-	return fmt.Sprintf("%s/%s/%s%s", os.Getenv("audioDomain"), time, h, fileName)
+	// time := time.Now().Format("200601021504")
+	// data := []byte(os.Getenv("audioSecret") + time + fileName)
+	// md5Ctx := md5.New()
+	// md5Ctx.Write(data)
+	// h := hex.EncodeToString(md5Ctx.Sum(nil))
+	return fmt.Sprintf("%s%s", os.Getenv("audioDomain"), fileName)
 }
 
 const (

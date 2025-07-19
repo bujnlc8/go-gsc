@@ -34,7 +34,7 @@ func (s MayNullStr) MarshalJSON() ([]byte, error) {
 	if s.Valid {
 		return json.Marshal(s.String)
 	}
-	return []byte(""), nil
+	return json.Marshal("")
 }
 
 type ReturnDataList struct {
